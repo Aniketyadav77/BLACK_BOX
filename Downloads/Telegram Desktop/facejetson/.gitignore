@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual env
+.venv/
+
+# Face embeddings / models
+facejetson/face_db.npz
+.insightface/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
