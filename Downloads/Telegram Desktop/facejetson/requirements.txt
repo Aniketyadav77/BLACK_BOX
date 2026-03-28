@@ -1,0 +1,10 @@
+numpy
+opencv-python
+insightface
+onnx
+onnxruntime-gpu
+nvidia-cublas-cu12
+nvidia-cudnn-cu12
+nvidia-cuda-runtime-cu12
+nvidia-cufft-cu11
+nvidia-cufft-cu12

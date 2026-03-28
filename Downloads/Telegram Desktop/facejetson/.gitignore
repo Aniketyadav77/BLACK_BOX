@@ -7,7 +7,7 @@ __pycache__/
 .venv/
 
 # Face embeddings / models
-facejetson/face_db.npz
+face_db.npz
 .insightface/
 
 # OS/editor

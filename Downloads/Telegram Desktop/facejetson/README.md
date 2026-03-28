@@ -1,4 +1,4 @@
-# FaceJetson: Real-time Face Detection & Recognition
+# Face Detection & Recognition
 
 SCRFD detector + ArcFace recognition using InsightFace. Works on GPU (CUDA) or CPU. Includes database builder for known faces and a live camera pipeline with simple tracking and cosine-similarity matching.
 
@@ -19,71 +19,64 @@ SCRFD detector + ArcFace recognition using InsightFace. Works on GPU (CUDA) or C
 # In PowerShell (Windows)
 python -m venv .venv
 & .\.venv\Scripts\Activate.ps1
-pip install -r facejetson\requirements.txt        # GPU
+pip install -r requirements.txt        # GPU
 # or
-pip install -r facejetson\requirements-cpu.txt     # CPU
+pip install -r requirements-cpu.txt     # CPU
 ```
 
 ## Prepare known faces
-1) Add images under `facejetson/known_faces/<person_name>/`.
+1) Add images under `known_faces/<person_name>/`.
    - Accepts .jpg/.jpeg/.png/.bmp/.webp
    - Use clear, frontal images; multiple angles improve robustness.
 2) Example:
 ```
-facejetson/known_faces/obama/1.jpg
-facejetson/known_faces/mary/2.png
+known_faces/obama/1.jpg
+known_faces/mary/2.png
 ```
 
 ## Build the embeddings database
 This downloads the InsightFace `buffalo_sc` models (SCRFD + ArcFace) on first run and writes `face_db.npz`.
 ```ps
 # From repo root (venv active)
-python facejetson\build_db.py
+python build_db.py
 ```
 - The script reports unreadable images or missing faces.
 - Output: `face_db.npz` containing normalized embeddings and labels.
 
 ## Run live detection/recognition
 ```ps
-python facejetson\main.py
+python main.py
 ```
 - Press ESC to quit.
 - Windows: auto-probes cameras via DirectShow/MSMF, then falls back to default.
 - Jetson: uses CSI/USB GStreamer pipelines with a V4L2 fallback.
 
 ## Tuning
-- Recognition threshold: `SIM_THRESHOLD` in [facejetson/main.py](facejetson/main.py) (default 0.45 for MobileFaceNet). Lower = more matches, higher = stricter.
-- Detection confidence: `CONF_THRESHOLD` in [facejetson/main.py](facejetson/main.py) (default 0.5).
+- Recognition threshold: `SIM_THRESHOLD` in [main.py](main.py) (default 0.45 for MobileFaceNet). Lower = more matches, higher = stricter.
+- Detection confidence: `CONF_THRESHOLD` in [main.py](main.py) (default 0.5).
 - Frame skipping: `SKIP_FRAMES` to trade accuracy vs FPS.
-- Tracker IOU + lifetime: `SimpleTracker` params in [facejetson/simple_tracker.py](facejetson/simple_tracker.py).
+- Tracker IOU + lifetime: `SimpleTracker` params in [simple_tracker.py](simple_tracker.py).
 
 ## Project structure
-- [facejetson/main.py](facejetson/main.py): live loop (detect → align → embed → match → track → display).
-- [facejetson/build_db.py](facejetson/build_db.py): builds `face_db.npz` from `known_faces/`.
-- [facejetson/scrfd.py](facejetson/scrfd.py): SCRFD detector loader.
-- [facejetson/arcface.py](facejetson/arcface.py): ArcFace embedding model loader.
-- [facejetson/align.py](facejetson/align.py): 5-point alignment to 112×112.
-- [facejetson/matcher.py](facejetson/matcher.py): cosine similarity matcher with thresholding.
-- [facejetson/simple_tracker.py](facejetson/simple_tracker.py): lightweight IOU-based tracker.
-- [facejetson/runtime_utils.py](facejetson/runtime_utils.py): selects CUDA/CPU providers for ONNX Runtime.
+- [main.py](main.py): live loop (detect → align → embed → match → track → display).
+- [build_db.py](build_db.py): builds `face_db.npz` from `known_faces/`.
+- [scrfd.py](scrfd.py): SCRFD detector loader.
+- [arcface.py](arcface.py): ArcFace embedding model loader.
+- [align.py](align.py): 5-point alignment to 112×112.
+- [matcher.py](matcher.py): cosine similarity matcher with thresholding.
+- [simple_tracker.py](simple_tracker.py): lightweight IOU-based tracker.
+- [runtime_utils.py](runtime_utils.py): selects CUDA/CPU providers for ONNX Runtime.
 
 ## Notes
-- If `w600k_mbf.onnx` is missing, run `python facejetson\build_db.py` once; it downloads to `~/.insightface/models/buffalo_sc/`.
+- If `w600k_mbf.onnx` is missing, run `python build_db.py` once; it downloads to `~/.insightface/models/buffalo_sc/`.
 - GPU DLL discovery on Windows is handled in `runtime_utils.py` via `os.add_dll_directory`.
 - `face_db.npz` contains embeddings; avoid committing it if it has private data.
 
-## GitHub upload quickstart
-```ps
 git init
 git remote add origin https://github.com/Aniketyadav77/BLACK_BOX.git
 git add .
 git commit -m "feat: add face recognition pipeline"
 git push -u origin main
-```
-(Optional) Split commits:
-- Code: `git add facejetson/*.py` then `git commit -m "feat: add face recognition pipeline"`
-- Docs: `git add README.md .gitignore` then `git commit -m "docs: add setup and usage guide"`
-
 ## Troubleshooting
 - "Model not found" → run `build_db.py` to download models.
 - "Could not open camera" → try a different index; edit `get_camera_pipeline()` in [facejetson/main.py](facejetson/main.py) to force a backend.
